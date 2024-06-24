@@ -1,10 +1,14 @@
 from openai import OpenAI
 from pathlib import Path
 
+# 替换为你的 OpenAI API 密钥和正确的 base_url
+api_key = "sk-by3QJVIDS2QakUYRVNe196GgP64IYSKx0BoCBlpN9ze171e0"
+base_url = "https://api.moonshot.cn/v1"
 
-def paper_analysis(api_key, file):
-    base_url = "https://api.moonshot.cn/v1"
-    client = OpenAI(api_key=api_key, base_url=base_url)
+client = OpenAI(api_key=api_key, base_url=base_url)
+
+
+def paper_analysis(file):
     file_object = client.files.create(file=Path(file.name), purpose="file-extract")
     file_content = client.files.content(file_id=file_object.id).text
 
@@ -40,9 +44,7 @@ def paper_analysis(api_key, file):
     return response
 
 
-def upload_file_data(api_key, file):
-    base_url = "https://api.moonshot.cn/v1"
-    client = OpenAI(api_key=api_key, base_url=base_url)
+def upload_file_data(file):
     file_object = client.files.create(file=Path(file.name), purpose="file-extract")
     file_content = client.files.content(file_id=file_object.id).text
 

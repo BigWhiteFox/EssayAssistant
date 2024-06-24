@@ -2,7 +2,8 @@ from urllib.parse import urlencode, quote
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-from messages import summary_paper
+import gradio as gr
+from internVL_find import summary_paper
 
 
 def translate(text):
@@ -41,11 +42,7 @@ def scrape_data(url, n):
 
             key_word = req_soup.find('div', class_='kw_wr')
             if key_word:
-                key_word = key_word.find('p', class_=lambda x: x in ['kw_main', 'kw_main_s'])
-                if key_word:
-                    key_word = key_word.text.strip()
-                else:
-                    key_word = '暂无'
+                key_word = key_word.find('p', class_=lambda x: x in ['kw_main', 'kw_main_s']).text.strip()
             else:
                 key_word = '暂无'
             # key_word = req_soup.find('div', class_='kw_wr').find('p', class_=lambda x: x in ['kw_main', 'kw_main_s']).find('a').text.strip()
@@ -63,20 +60,12 @@ def scrape_data(url, n):
                 print('\n')
                 print(href)
                 print(doi)
-                doi = doi.find('p', class_=lambda x: x in ['kw_main', 'kw_main_s'])
-                if doi:
-                    doi = doi.text.strip()
-                else:
-                    doi = '暂无'
+                doi = doi.find('p', class_=lambda x: x in ['kw_main', 'kw_main_s']).text.strip()
             else:
                 doi = '暂无'
             author = req_soup.find('div', class_='author_wr')
             if author:
-                author = author.find('p', class_='author_text')
-                if author:
-                    author = author.text.strip()
-                else:
-                    author = '暂无'
+                author = author.find('p', class_='author_text').text.strip()
             else:
                 author = '暂无'
             # author = req_soup.find('div', class_='author_wr').find('p', class_='author_text kw_main_s').text.strip()
@@ -92,20 +81,20 @@ def scrape_data(url, n):
 
 # 定义一个函数来格式化输出
 # 定义一个函数来格式化输出特定的列
-def format_specific_columns(llm_key, row, columns):
+def format_specific_columns(row, columns):
     formatted_string = ""
     for col in columns:
         formatted_string += f"{col}: {row[col]}  "
     # print("大模型输入的是：\n", formatted_string)
     # print("大模型输出的是：\n", fold_paper(formatted_string.strip()))
-    return summary_paper(key=llm_key, message=formatted_string.strip())
+    return summary_paper(formatted_string.strip())
 
 
-def summarize_data(llm_key, data):
+def summarize_data(data):
     fold_data = data[['Tittle', 'Keywords', 'Abstract', 'DOI/ISBN', 'Author', 'Paper_url']]
     abstract = []
     for i in range(len(fold_data)):
-        abstract.append(format_specific_columns(llm_key, fold_data.iloc[i], ['Tittle', 'Abstract']))
+        abstract.append(format_specific_columns(fold_data.iloc[i], ['Tittle', 'Abstract']))
         # 应用格式化函数并输出特定的列
         # print(f"第{i}次abstract输出:\n", abstract)
 
@@ -114,17 +103,18 @@ def summarize_data(llm_key, data):
     return fold_data
 
 
-def run(llm_key, text, n):
+def run(text, n):
     url1, url2 = translate(text)
     relevance_data = scrape_data(url1, n)
     reference_data = scrape_data(url2, n)
     relevance_data.to_csv('relevance_data.csv', encoding='utf-8-sig')
     reference_data.to_csv('reference_data.csv', encoding='utf-8-sig')
-    new_relevance_data = summarize_data(llm_key, relevance_data)
+    new_relevance_data = summarize_data(relevance_data)
     new_relevance_data.to_csv('new_relevance_data.csv', encoding='utf-8-sig')
-    new_reference_data = summarize_data(llm_key, reference_data)
+    new_reference_data = summarize_data(reference_data)
     new_reference_data.to_csv('new_reference_data.csv', encoding='utf-8-sig')
     return new_relevance_data, new_reference_data
+
 
 # text = 'CNN'
 # n = 2

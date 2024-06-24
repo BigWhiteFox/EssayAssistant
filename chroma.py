@@ -1,8 +1,7 @@
 import pandas as pd
 from BCEmbedding import EmbeddingModel
 import chromadb
-import os
-from messages import fox_find_chat, fox_write_chat
+from internLM_lastest import fox_write, fox_find_chat
 
 
 def BCE_embedding(vectorization_data):
@@ -65,17 +64,24 @@ def chroma_data(fsm):
     # 将二维列表中的每个子列表转换成一个字符串
     one_dimensional_list = [' '.join(map(str, sublist)) for sublist in lists_of_rows]
 
+    # print('\none_dimensional_list:', one_dimensional_list)
+    # print('\none_dimensional_list[0]:', one_dimensional_list[0])
+
+
+    # print(embeddings)
+    # print(embeddings.shape)
+
     # 使用默认配置初始化数据库
     # client = chromadb.Client()
-    path = ".\Data"
-    if not os.path.exists(path):
-        os.makedirs(path)
-    client = chromadb.PersistentClient(path=path)  # 数据保存在磁盘
+    client = chromadb.PersistentClient(path=".\Data")  # 数据保存在磁盘
     # 创建一个名为 "my_dataset" 的数据集
     dataset = client.get_or_create_collection(name="my_dataset")
 
     sentences = one_dimensional_list
     embeddings = BCE_embedding(sentences)
+    # 自动生成ID
+
+    # ids = [f"id{i + 1}" for i in range(len(sentences))]
 
     # 自动生成ID并创建统一的元数据
     if fsm == 1:
@@ -97,15 +103,16 @@ def chroma_data(fsm):
 
 
 def chroma_file_data(file_list: list):
-    path = ".\Data"
-    if not os.path.exists(path):
-        os.makedirs(path)
-    client = chromadb.PersistentClient(path=path)  # 数据保存在磁盘
+    # client = chromadb.Client()
+    client = chromadb.PersistentClient(path=".\Data")  # 数据保存在磁盘
     # 创建一个名为 "my_dataset" 的数据集
     dataset = client.get_or_create_collection(name="my_dataset")
 
     sentences = file_list
     embeddings = BCE_embedding(sentences)
+    # 自动生成ID
+
+    # ids = [f"id{i + 1}" for i in range(len(sentences))]
 
     # 自动生成ID并创建统一的元数据
     ids = [f"user{i + 1}" for i in range(len(sentences))]
@@ -119,12 +126,10 @@ def chroma_file_data(file_list: list):
     )
 
 
-def chroma_query(llm_key, query: str):
-    path = ".\Data"
-    if not os.path.exists(path):
-        os.makedirs(path)
-    client = chromadb.PersistentClient(path=path)  # 数据保存在磁盘
+def chroma_query(query: str):
+    client = chromadb.PersistentClient(path=".\Data")  # 数据保存在磁盘
     dataset = client.get_collection(name="my_dataset")
+    # dataset = client.get_or_create_collection(name="my_dataset")
     # 使用一个向量进行相似度查询
     query_embedding = BCE_embedding(query)
     results = dataset.query(query_embeddings=query_embedding, n_results=5)
@@ -137,15 +142,14 @@ def chroma_query(llm_key, query: str):
     # print(type(str(results['documents'])))
 
     # print('\ndataset:', dataset)
-    return fox_find_chat(key=llm_key, message=query, results=results['documents'])
+
+    return fox_find_chat(query, results['documents'])
 
 
-def chroma_query_write(llm_key, query: str, temperature, top_p, max_tokens):
-    path = ".\Data"
-    if not os.path.exists(path):
-        os.makedirs(path)
-    client = chromadb.PersistentClient(path=path)  # 数据保存在磁盘
+def chroma_query_write(query: str):
+    client = chromadb.PersistentClient(path=".\Data")  # 数据保存在磁盘
     dataset = client.get_collection(name="my_dataset")
+    # dataset = client.get_or_create_collection(name="my_dataset")
     # 使用一个向量进行相似度查询
     query_embedding = BCE_embedding(query)
     results = dataset.query(query_embeddings=query_embedding, n_results=15)
@@ -158,8 +162,7 @@ def chroma_query_write(llm_key, query: str, temperature, top_p, max_tokens):
     # print(type(str(results['documents'])))
 
     # print('\ndataset:', dataset)
-    return fox_write_chat(key=llm_key, message=query, results=results['documents'],
-                          temperature=temperature, top_p=top_p, max_tokens=max_tokens)
 
+    return fox_write(query, results['documents'])
 # chroma_data(1)
 # chroma_query("我在寻找几篇神经网络和芯片相关的论文，你有什么好的推荐吗？")
