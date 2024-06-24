@@ -37,3 +37,9 @@ def extract_data(text, n):
     total_data.to_csv('consensus_data.csv', encoding='utf-8-sig')
     return total_data
 
+
+# text_input = 'CNN'
+# page = 1
+# consensus_data = extract_data(page, text_input)
+
+
