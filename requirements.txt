@@ -1,0 +1,8 @@
+BCEmbedding==0.1.5
+appbuilder-sdk
+chromadb
+openai
+pdf2image
+bs4
+zhipuai
+gradio==4.8
