@@ -10,7 +10,7 @@
 
 用户启动软件后，通过gradio生成的UI于浏览器里交互，用户发送的文本数据分情况：狐聊、狐说模块中直接递交给大模型进行通信，狐找模块中会相应搜寻相关的文献资料，递交前端并生成向量数据库，狐写模块中会发送给向量数据库进行查询，将与查询结果一齐打包给大模型通信。相应的，大模型回复会直接显示在前端。
 
-![流程图](.\images\流程图.jpg)
+![流程图](images/流程图.jpg)
 
 ## **应用功能**
 
@@ -72,7 +72,7 @@ pip install -r requirements.txt
 
 跳出界面如下，则代表已经启动成功。(第一次与大模型对话会稍慢，耐心等待即可)
 
-![初始界面](.\images\初始界面.jpeg)
+![初始界面](images/初始界面.jpeg)
 
 ## 功能界面展示
 
@@ -80,21 +80,21 @@ pip install -r requirements.txt
 
 **狐聊界面展示：**
 
-![狐聊](.\images\狐聊.jpeg)
+![狐聊](images/狐聊.jpeg)
 
 **狐说界面展示：**
 
-![狐说](.\images\狐说.jpeg)
+![狐说](images/狐说.jpeg)
 
 **狐找界面展示：**
 
-![狐找](.\images\狐找.jpeg)
+![狐找](images/狐找.jpeg)
 
 **狐写界面展示：**
 
-![狐写21](.\images\狐写21.jpeg)
+![狐写21](images\狐写21.jpeg)
 
-![狐写22](.\images\狐写22.jpeg)
+![狐写22](images/狐写22.jpeg)
 
 ## 感谢
 
@@ -106,4 +106,4 @@ pip install -r requirements.txt
 
 ## License
 
-狐言乱语-EssayAssistant遵循[Apache-2.0开源协议](.\LICENSE.txt)。
+狐言乱语-EssayAssistant遵循[Apache-2.0开源协议](LICENSE.txt)。
