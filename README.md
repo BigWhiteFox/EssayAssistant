@@ -70,7 +70,11 @@ pip install -r requirements.txt
  python .\ui_verification.py
 ```
 
-跳出界面如下，则代表已经启动成功。(第一次与大模型对话会稍慢，耐心等待即可)
+跳出界面如下，则代表已经启动成功。
+
+ps1：第一次与大模型对话会稍慢，耐心等待即可
+
+ps2：由于使用了openai服务，使用过程需要**全程科学上网**
 
 ![初始界面](images/初始界面.jpeg)
 
@@ -92,7 +96,7 @@ pip install -r requirements.txt
 
 **狐写界面展示：**
 
-![狐写21](images\狐写21.jpeg)
+![狐写21](images/狐写21.jpeg)
 
 ![狐写22](images/狐写22.jpeg)
 
