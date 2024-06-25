@@ -6,8 +6,6 @@
 
 ## 项目流程
 
-当前版本主要使用了三方API: 百度智能云千帆AppBuilder、ChatGLM、Moonshot。
-
 用户启动软件后，通过gradio生成的UI于浏览器里交互，用户发送的文本数据分情况：狐聊、狐说模块中直接递交给大模型进行通信，狐找模块中会相应搜寻相关的文献资料，递交前端并生成向量数据库，狐写模块中会发送给向量数据库进行查询，将与查询结果一齐打包给大模型通信。相应的，大模型回复会直接显示在前端。
 
 ![流程图](images/流程图.jpg)
@@ -47,7 +45,7 @@
 拉取github仓库
 
 ```
-git clone https://github.com/jabberwockyang/MedicalReviewAgent.git
+git clone https://github.com/BigWhiteFox/EssayAssistant.git
 ```
 
 创建conda环境
