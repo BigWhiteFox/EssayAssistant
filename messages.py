@@ -2,6 +2,8 @@ from zhipuai import ZhipuAI
 import appbuilder
 import os
 import gradio as gr
+import json
+import requests
 import base64
 
 
@@ -209,71 +211,95 @@ def summary_paper(key, message):
 
 
 def fox_find_chat(key, message, results, temperature=0.2, top_p=0.8, max_tokens=1024):
-    client = ZhipuAI(api_key=key)
-    response = client.chat.completions.create(
-        model="glm-4-0520",  # 填写需要调用的模型名称
-        messages=[
-            {
-                "role": "system",
-                "content": "你是一名专业的学术研究助手，你的任务是帮助用户寻找相关论文。"
-                           "你将会接收到一系列从向量数据库中检索出的论文信息，"
-                           "每条信息都包含以下字段：'Title', 'Authors', 'Abstract', 'DOI'。"
-                           "这些论文信息是基于用户查询自动检索得到的，并且已经按照相关性排序。"
-                           + str(results) +
-                           "你的任务是根据这些论文信息，选取内容合适的部分回答用户问题，请不要全选，也不要只选取一两个。"
-                           "语言应该适合学术交流，清晰、准确、客观。"
-                           "对每篇论文的推荐和解说，应当包含个人的见解和点评，而不是罗列其内容。"
-            },
-            {
-                "role": "user",
-                "content": message
-            }
-        ],
-        # stream=True,  # 是否开启流式输出
-        temperature=temperature,  # 随机性，取值范围[0,1]，值越大表示输出的随机性越小
-        top_p=top_p,  # nucleus sampling的top_p值，取值范围[0,1]，值越大表示输出的随机性越小
-        max_tokens=max_tokens,  # 生成文本的最大长度
-    )
-    return response.choices[0].message.content
-
-
-def fox_write_chat(key, message, results, temperature=0.2, top_p=0.8, max_tokens=4096):
-    client = ZhipuAI(api_key=key)
-    response = client.chat.completions.create(
-        model="glm-4-0520",  # 填写需要调用的模型名称
-        messages=[
-            {
-                "role": "system",
-                "content": "你是一名专业的学术研究助手，你的任务是帮助用户总结相关论文的共性，并叙说对应论文的特点，如技术细节等。"
-                           "你将会接收到一系列从向量数据库中检索出的论文信息，"
-                           "每条信息都包含但不限于以下字段：'Title', 'Authors', 'Abstract', 'DOI'。"
-                           "这些论文信息是基于用户查询自动检索得到的，并且已经按照相关性排序。"
-                           + str(results) +
-                           "你的回答应当根据这些论文信息，并且全面、准确且连贯，涵盖关键发现、研究主题、趋势以及任何其他相关的重要信息。"
-                           "此外，你还需要知道：综述应该是对所提供论文的精华总结，同时也要确保信息的准确性和完整性。"
-                           "如果有需要，请遵循以下步骤来撰写综述："
-                           "1. 仔细阅读并理解每篇论文的标题、作者、摘要、DOI和出版年份。"
-                           "2. 分析论文之间的联系和差异，识别核心主题和研究趋势。"
-                           "3. 撰写综述，确保综述的结构清晰，内容有逻辑性，语言流畅。"
-                           "4. 在综述中引用具体的研究成果时，请注明作者和出版年份，以增加综述的权威性。"
-                           "5. 如果有额外的见解或分析，可以在综述中适当提出，但要确保这些内容是基于所提供论文信息的合理推断。"
-                           "如果有需要，你应当知道综述要求："
-                           "- 综述应该是对学术论文的综合总结，而不是单纯的论文列表。"
-                           "- 综述应该包含对研究领域的深入分析和对未来研究方向的展望。"
-                           "- 综述应该是有机结合多篇论文信息的产物，而不是孤立地介绍每篇论文。"
-                           "- 综述的语言应该适合学术交流，清晰、准确、客观。"
-            },
+    url = 'https://internlm-chat.intern-ai.org.cn/puyu/api/v1/chat/completions'
+    header = {
+        'Content-Type':
+            'application/json',
+        "Authorization":
+            "Bearer eyJ0eXBlIjoiSldUIiwiYWxnIjoiSFM1MTIifQ.eyJqdGkiOiI0MDA3MzgyOCIsInJvbCI6IlJPTEVfUkVHSVNURVIiLC"
+            "Jpc3MiOiJPcGVuWExhYiIsImlhdCI6MTcxODEwNTUwNCwiY2xpZW50SWQiOiJlYm1ydm9kNnlvMG5semFlazF5cCIsInBob25lI"
+            "joiMTgwNjE0Mjg4MDEiLCJ1dWlkIjoiZWM1ODY0NWMtZWQ4NS00MjFkLWFiYTktYzVmN2EzOGI5NjVmIiwiZW1haWwiOiJiaWdf"
+            "d2hpdGVfZm94QHFxLmNvbSIsImV4cCI6MTczMzY1NzUwNH0.8ddtMAsEvDMvhYeJHOTe2Zki8KdYZyI-yoMvTwbgBAeMWCSXv78"
+            "Kc-zQ87W_PPBbSzdWvBrX0MGpB2ZDpt06Tw"
+    }
+    data = {
+        "model": "internlm2-latest",
+        "messages": [
             {
                 "role": "user",
-                "content": message
+                "text": message +
+                        "你是一名专业的学术研究助手，你的任务是帮助用户寻找相关论文。"
+                        "你将会接收到一系列从向量数据库中检索出的论文信息，"
+                        "每条信息都包含以下字段：'Title', 'Authors', 'Abstract', 'DOI'。"
+                        "这些论文信息是基于用户查询自动检索得到的，并且已经按照相关性排序。"
+                        + str(results) +
+                        "你的任务是根据这些论文信息，选取内容合适的部分回答用户问题，请不要全选，也不要只选取一两个。"
+                        "语言应该适合学术交流，清晰、准确、客观。"
+                        "对每篇论文的推荐和解说，应当包含个人的见解和点评，而不是罗列其内容。"
+
             }
         ],
-        stream=True,  # 是否开启流式输出
-        temperature=temperature,  # 随机性，取值范围[0,1]，值越大表示输出的随机性越小
-        top_p=top_p,  # nucleus sampling的top_p值，取值范围[0,1]，值越大表示输出的随机性越小
-        max_tokens=max_tokens,  # 生成文本的最大长度
-    )
-    return response
+        "temperature": temperature,
+        "top_p": top_p,
+        "max_tokens": max_tokens,
+    }
+
+    res = requests.post(url, headers=header, data=json.dumps(data))
+    print(res.status_code)
+    print(res.json())
+    print(res.json()["choices"][0]["message"]["content"])
+    return res.json()["choices"][0]["message"]["content"]
+
+
+def fox_write_chat(key, message, results, temperature=0.2, top_p=0.8, max_tokens=1024):
+    url = 'https://internlm-chat.intern-ai.org.cn/puyu/api/v1/chat/completions'
+    header = {
+        'Content-Type':
+            'application/json',
+        "Authorization":
+            "Bearer eyJ0eXBlIjoiSldUIiwiYWxnIjoiSFM1MTIifQ.eyJqdGkiOiI0MDA3MzgyOCIsInJvbCI6IlJPTEVfUkVHSVNURVIiLC"
+            "Jpc3MiOiJPcGVuWExhYiIsImlhdCI6MTcxODEwNTUwNCwiY2xpZW50SWQiOiJlYm1ydm9kNnlvMG5semFlazF5cCIsInBob25lI"
+            "joiMTgwNjE0Mjg4MDEiLCJ1dWlkIjoiZWM1ODY0NWMtZWQ4NS00MjFkLWFiYTktYzVmN2EzOGI5NjVmIiwiZW1haWwiOiJiaWdf"
+            "d2hpdGVfZm94QHFxLmNvbSIsImV4cCI6MTczMzY1NzUwNH0.8ddtMAsEvDMvhYeJHOTe2Zki8KdYZyI-yoMvTwbgBAeMWCSXv78"
+            "Kc-zQ87W_PPBbSzdWvBrX0MGpB2ZDpt06Tw"
+    }
+    data = {
+        "model": "internlm2-latest",
+        "messages": [
+            {
+                "role": "user",
+                "text": message +
+                        "你是一名专业的学术研究助手，你的任务是帮助用户撰写基于相关学术论文的综述。"
+                        "你将会接收到一系列从向量数据库中检索出的论文信息，"
+                        "每条信息都包含但不限于以下字段：'Title', 'Authors', 'Abstract', 'DOI'。"
+                        "这些论文信息是基于用户查询自动检索得到的，并且已经按照相关性排序。"
+                        + str(results) +
+                        "你的任务是根据这些论文信息，撰写一篇全面、准确且连贯的综述，涵盖关键发现、研究主题、趋势以及任何其他相关的重要信息。"
+                        "综述应该是对所提供论文的精华总结，同时也要确保信息的准确性和完整性。"
+                        "请遵循以下步骤来撰写综述："
+                        "1. 仔细阅读并理解每篇论文的标题、作者、摘要、DOI和出版年份。"
+                        "2. 分析论文之间的联系和差异，识别核心主题和研究趋势。"
+                        "3. 撰写综述，确保综述的结构清晰，内容有逻辑性，语言流畅。"
+                        "4. 在综述中引用具体的研究成果时，请注明作者和出版年份，以增加综述的权威性。"
+                        "5. 如果有额外的见解或分析，可以在综述中适当提出，但要确保这些内容是基于所提供论文信息的合理推断。"
+                        "综述要求："
+                        "- 综述应该是对学术论文的综合总结，而不是单纯的论文列表。"
+                        "- 综述应该包含对研究领域的深入分析和对未来研究方向的展望。"
+                        "- 综述应该是有机结合多篇论文信息的产物，而不是孤立地介绍每篇论文。"
+                        "- 综述的语言应该适合学术交流，清晰、准确、客观。"
+            }
+        ],
+        "temperature": temperature,
+        "top_p": top_p,
+        "max_tokens": max_tokens,
+    }
+
+    res = requests.post(url, headers=header, data=json.dumps(data))
+    print(res.status_code)
+    print(res.json())
+    print(res.json()["choices"][0]["message"]["content"])
+    return res.json()["choices"][0]["message"]["content"]
+
 
 
 def fox_write_arxiv(message):

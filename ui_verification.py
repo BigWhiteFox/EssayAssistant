@@ -157,12 +157,7 @@ def fox_write(key, query, max_new_tokens, top_p, temperature):
     # 在这里处理输入
     response = chroma_query_write(llm_key=key, query=query,
                                   max_tokens=max_new_tokens, top_p=top_p, temperature=temperature)
-    collected_messages = []
-    for idx, chunk in enumerate(response):
-        chunk_message = chunk.choices[0].delta
-        if not chunk_message.content: continue
-        collected_messages.append(chunk_message)  # save the message
-        yield ''.join([m.content for m in collected_messages])
+    return response
 
 
 def fox_write_extra(message):
@@ -299,7 +294,7 @@ with gr.Blocks(theme='rawrsor1/Everforest', js=js) as demo:
                 # clear4 = gr.ClearButton([fox_write_input, paper_summary_chat, upload_file])
                 with gr.Accordion("Parameters", open=False):
                     with gr.Column():
-                        max_new_tokens3 = Slider(minimum=2048, maximum=8192, value=4096, step=1, label='Max new tokens')
+                        max_new_tokens3 = Slider(minimum=512, maximum=4096, value=1024, step=1, label='Max new tokens')
                         top_p3 = Slider(minimum=0.01, maximum=1, value=0.7, step=0.01, label='Top_p')
                         temperature3 = Slider(minimum=0.01, maximum=1, value=0.8, step=0.01, label='Temperature')
             with gr.Column(scale=5):
